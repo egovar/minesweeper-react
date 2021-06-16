@@ -1,17 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const Field = ({ fieldSize, minesCount, status }) => {
-  /* State Hooks */
+import "./field.css";
 
-  const [mines, SetMines] = useState([]);
+const Field = ({ field_data, difficulty, status, onStartGame }) => {
+  const letters = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
 
-  /* End of State Hooks */
+  /* State Hooks and Variables*/
 
-  const RandomMine = (field_size, opened) => {
+  let mines_array = [];
+
+  let field_matrix = [];
+
+  let field_divs = [];
+
+  /* End of State Hooks and Variables */
+
+  /* Functions with Setters */
+
+  const RandomMine = (field_data, opened) => {
     while (true) {
       let mine = {
-        x: Math.floor(Math.random() * field_size.x),
-        y: Math.floor(Math.random() * field_size.y),
+        x: Math.floor(Math.random() * field_data.x),
+        y: Math.floor(Math.random() * field_data.y),
       };
       if (mine.x !== opened.x || mine.y !== opened.y) {
         return mine;
@@ -19,11 +29,11 @@ const Field = ({ fieldSize, minesCount, status }) => {
     }
   };
 
-  const SetMinesState = (field_size, mines_count, opened) => {
-    const mines_array = [];
-    for (let i = 0; i < mines_count; i++) {
+  const setMines = (field_data, opened) => {
+    mines_array = [];
+    for (let i = 0; i < field_data.mines_count; i++) {
       while (true) {
-        const mine = RandomMine(field_size, opened);
+        const mine = RandomMine(field_data, opened);
         const index = mines_array.findIndex(
           (el) => el.x === mine.x && el.y === mine.y
         );
@@ -33,27 +43,94 @@ const Field = ({ fieldSize, minesCount, status }) => {
         }
       }
     }
-    SetMines(mines_array);
     console.log(mines_array);
   };
 
-  const GenerateEmptyField = (field_size) => {
-    const letters = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
-    const cell_divs = [];
-    for (let i = field_size.y; i > 0; i--) {
-      cell_divs.push(<div key={i}>{i}</div>);
+  /* End of Functions with Setters */
+
+  /* Generation Functions */
+
+  const GenerateFieldDivs = (field_size) => {
+    field_divs = [];
+    field_divs.push(<div key="-А0"></div>);
+    for (let i = 0; i < field_size.x; i++) {
+      field_divs.push(<div key={letters[i]}>{letters[i]}</div>);
+    }
+    for (let i = 1; i <= field_size.y; i++) {
+      field_divs.push(<div key={i}>{i}</div>);
       for (let j = 0; j < field_size.x; j++) {
-        cell_divs.push(<div key={letters[j] + i} data-y={i} data-x={letters[j]}></divkey>);
+        field_divs.push(
+          <div
+            className={"field__cell"}
+            key={letters[j] + i}
+            data-y={i}
+            data-x={letters[j]}
+          ></div>
+        );
       }
     }
-    cell_divs.push(<div key="-А0"></div>);
-    for (let i = 0; i < field_size.x; i++) {
-      cell_divs.push(<div key={letters[i]}>{letters[i]}</div>);
-    }
-    return cell_divs;
+    return field_divs;
   };
 
-  
+  const SetMine = (x, y) => {
+    field_matrix[x][y] = -1;
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (
+          (i !== 0 || j !== 0) &&
+          x + i < field_data.x &&
+          x + i >= 0 &&
+          y + j < field_data.y &&
+          y + j >= 0 &&
+          field_matrix[x + i][y + j] !== -1
+        ) {
+          field_matrix[x + i][y + j] += 1;
+        }
+      }
+    }
+  };
+
+  const GenerateFieldMatrix = (field, mines, opened) => {
+    field_matrix = [];
+    for (let i = 0; i < field.y; i++) {
+      field_matrix.push([]);
+      for (let j = 0; j < field.y; j++) {
+        field_matrix[i].push(0);
+      }
+    }
+
+    mines.forEach((mine) => {
+      SetMine(mine.x, mine.y);
+    });
+
+    console.log(field_matrix);
+  };
+
+  const NewGame = (e) => {
+    const opened_div = e.target;
+    if (
+      opened_div.classList.contains("field__cell") &&
+      status === "not_started"
+    ) {
+      const opened = {
+        x: opened_div.dataset.x,
+        y: opened_div.dataset.y,
+      };
+      onStartGame();
+      setMines(field_data, opened);
+      GenerateFieldMatrix(field_data, mines_array, opened);
+    }
+  };
+
+  /* End of Generation Functions */
+
+  GenerateFieldDivs(field_data);
+
+  return (
+    <div className={"field field_" + difficulty} onClick={(e) => NewGame(e)}>
+      {field_divs}
+    </div>
+  );
 };
 
 export default Field;

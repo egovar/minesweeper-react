@@ -1,0 +1,21 @@
+.field {
+    display: grid;
+    gap: 5px;
+    grid-auto-rows: 30px;
+}
+
+.field_amateur {
+    grid-template-columns: repeat(16, 30px);
+}
+
+.field_beginner {
+    grid-template-columns: repeat(11, 30px);
+}
+
+.field_profi {
+    grid-template-columns: repeat(21, 30px);
+}
+
+.field__cell {
+    background-color: darkgreen;
+}
