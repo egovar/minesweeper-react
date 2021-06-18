@@ -13,6 +13,7 @@ const Field = ({
   onRestart: restartGame,
 }) => {
   const LETTERS = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
+  useEffect(() => console.log(fieldMatrix));
 
   // independent functions
 
