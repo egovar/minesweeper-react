@@ -2,133 +2,283 @@ import React, { useState, useEffect } from "react";
 
 import "./field.css";
 
-const Field = ({ field_data, difficulty, status, onStartGame }) => {
-  const letters = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
+import FieldCell from "../field__cell/field__cell";
 
-  /* State Hooks and Variables*/
+const Field = ({
+  difficulty,
+  status,
+  onStart: startGame,
+  onLose: loseGame,
+  onWin: winGame,
+  onRestart: restartGame,
+}) => {
+  useEffect(() => console.log(openedCellsMatrix, fieldData, difficulty));
+  const LETTERS = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
 
-  let mines_array = [];
+  // independent functions
 
-  let field_matrix = [];
+  const calculateFieldData = (difficulty) => {
+    switch (difficulty) {
+      case "amateur":
+        return {
+          x: 15,
+          y: 15,
+          mines_count: 40,
+        };
+      case "profi":
+        return {
+          x: 20,
+          y: 15,
+          mines_count: 65,
+        };
+      default:
+        return {
+          x: 8,
+          y: 8,
+          mines_count: 10,
+        };
+    }
+  };
 
-  let field_divs = [];
+  const generateEmptyFieldMatrix = (field_data) => {
+    let temp_field_matrix = [];
+    for (let i = 0; i < field_data.y; i++) {
+      temp_field_matrix.push([]);
+      for (let j = 0; j < field_data.x; j++) {
+        temp_field_matrix[i].push(0);
+      }
+    }
+    return temp_field_matrix;
+  };
 
-  /* End of State Hooks and Variables */
+  // indepndent finctions
 
-  /* Functions with Setters */
+  const [fieldData, setFieldData] = useState(calculateFieldData(difficulty));
 
-  const RandomMine = (field_data, opened) => {
+  useEffect(() => {
+    if (status === "not_started") {
+      const temp_field_data = calculateFieldData(difficulty);
+      setFieldData(temp_field_data);
+      setFieldMatrix(generateEmptyFieldMatrix(temp_field_data));
+      setOpenedCellsMatrix(generateEmptyFieldMatrix(temp_field_data));
+    }
+  }, [difficulty, status]);
+
+  //calculate field data dependent
+
+  const [fieldMatrix, setFieldMatrix] = useState(
+    generateEmptyFieldMatrix(fieldData)
+  );
+
+  const [openedCellsMatrix, setOpenedCellsMatrix] = useState(
+    generateEmptyFieldMatrix(fieldData)
+  );
+
+  useEffect(() => {}, [fieldData]);
+
+  //field data dependent
+
+  const openCellWithObj = ({ y, x } = { y: "err", x: "err" }) => {
+    if (y in openedCellsMatrix) {
+      if (x in openedCellsMatrix[y]) {
+        if (openedCellsMatrix[y][x] === 0) {
+          const temp_opened_cells_matrix = openedCellsMatrix;
+          temp_opened_cells_matrix[y][x] = 1;
+          setOpenedCellsMatrix([...temp_opened_cells_matrix]);
+          switch (fieldMatrix[y][x]) {
+            case -1:
+              loseGame();
+              break;
+            case 0:
+              for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                  if (i !== 0 || j !== 0) {
+                    openCellWithObj({ y: y + i, x: x + j });
+                  }
+                }
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    }
+  };
+
+  const strToCoordinateObj = (y, x) => {
+    x = LETTERS.indexOf(x);
+    y = Number(y);
+    if (x >= 0 && Number.isNaN(y) === false) {
+      return {
+        y: y - 1,
+        x: x,
+      };
+    } else {
+      alert("Ошибка парсинга координатной строки");
+    }
+  };
+
+  const openCellWithStr = (coord_str) => {
+    if (status === "started") {
+      const x_raw = coord_str.charAt(0).toUpperCase();
+      const y_raw = coord_str.substr(1);
+      const cell_div = document.querySelector(
+        `.field__cell[data-y="${y_raw}"][data-x="${x_raw}"]`
+      );
+      const pos = strToCoordinateObj(y_raw, x_raw);
+      if (cell_div != null && pos != null) {
+        openCellWithObj(pos);
+      } else alert("Клетка с введёнными координатами не найдена");
+    }
+  };
+
+  // field matrixes dependent;
+
+  const randomMine = (field_data, opened) => {
     while (true) {
       let mine = {
-        x: Math.floor(Math.random() * field_data.x),
         y: Math.floor(Math.random() * field_data.y),
+        x: Math.floor(Math.random() * field_data.x),
       };
-      if (mine.x !== opened.x || mine.y !== opened.y) {
+      if (mine.y !== opened.y || mine.x !== opened.x) {
         return mine;
       }
     }
   };
 
-  const setMines = (field_data, opened) => {
-    mines_array = [];
+  const generateMines = (field_data, opened) => {
+    const mines_array = [];
     for (let i = 0; i < field_data.mines_count; i++) {
       while (true) {
-        const mine = RandomMine(field_data, opened);
+        const mine = randomMine(field_data, opened);
         const index = mines_array.findIndex(
           (el) => el.x === mine.x && el.y === mine.y
         );
-        if (index === -1 && (mine.x !== opened.x || mine.y !== opened.y)) {
+        if (index === -1 && (mine.y !== opened.y || mine.x !== opened.x)) {
           mines_array.push(mine);
           break;
         }
       }
     }
-    console.log(mines_array);
+    return mines_array;
   };
 
-  /* End of Functions with Setters */
+  const placeMine = (t_field_matrix, y, x) => {
+    t_field_matrix[y][x] = -1;
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (
+          y + i in t_field_matrix &&
+          x + j in t_field_matrix[y + i] &&
+          t_field_matrix[y + i][x + j] !== -1
+        ) {
+          t_field_matrix[y + i][x + j] += 1;
+        }
+      }
+    }
+    return t_field_matrix;
+  };
 
-  /* Generation Functions */
+  const generateFieldMatrix = (field, mines) => {
+    let temp_field_matrix = [];
+    for (let i = 0; i < field.y; i++) {
+      temp_field_matrix.push([]);
+      for (let j = 0; j < field.x; j++) {
+        temp_field_matrix[i].push(0);
+      }
+    }
 
-  const GenerateFieldDivs = (field_size) => {
-    field_divs = [];
+    mines.forEach((mine) => {
+      temp_field_matrix = placeMine(temp_field_matrix, mine.y, mine.x);
+    });
+
+    return temp_field_matrix;
+  };
+
+  const newGame = (opened) => {
+    if (status === "not_started") {
+      setFieldMatrix(
+        generateFieldMatrix(fieldData, generateMines(fieldData, opened))
+      );
+      startGame();
+      setFirstOpened(opened);
+    }
+  };
+
+  // generators of mines and fields to put their data in the components
+
+  const generateFieldDivs = (field_size) => {
+    const field_divs = [];
     field_divs.push(<div key="-А0"></div>);
     for (let i = 0; i < field_size.x; i++) {
-      field_divs.push(<div key={letters[i]}>{letters[i]}</div>);
+      field_divs.push(<div key={LETTERS[i]}>{LETTERS[i]}</div>);
     }
     for (let i = 1; i <= field_size.y; i++) {
       field_divs.push(<div key={i}>{i}</div>);
       for (let j = 0; j < field_size.x; j++) {
         field_divs.push(
-          <div
-            className={"field__cell"}
-            key={letters[j] + i}
-            data-y={i}
-            data-x={letters[j]}
-          ></div>
+          <FieldCell
+            key={LETTERS[j] + i}
+            key_str={LETTERS[j] + i}
+            is_pressed={openedCellsMatrix[i - 1][j]}
+            onPress={openCellWithStr}
+            onNewGame={newGame}
+            value={fieldMatrix[i - 1][j]}
+            y={i - 1}
+            x={j}
+          />
         );
       }
     }
     return field_divs;
   };
 
-  const SetMine = (x, y) => {
-    field_matrix[x][y] = -1;
-    for (let i = -1; i <= 1; i++) {
-      for (let j = -1; j <= 1; j++) {
-        if (
-          (i !== 0 || j !== 0) &&
-          x + i < field_data.x &&
-          x + i >= 0 &&
-          y + j < field_data.y &&
-          y + j >= 0 &&
-          field_matrix[x + i][y + j] !== -1
-        ) {
-          field_matrix[x + i][y + j] += 1;
-        }
-      }
-    }
-  };
+  //functions to generate cell divs
 
-  const GenerateFieldMatrix = (field, mines, opened) => {
-    field_matrix = [];
-    for (let i = 0; i < field.y; i++) {
-      field_matrix.push([]);
-      for (let j = 0; j < field.y; j++) {
-        field_matrix[i].push(0);
-      }
-    }
+  //finally generate them
 
-    mines.forEach((mine) => {
-      SetMine(mine.x, mine.y);
-    });
+  //Main generation
 
-    console.log(field_matrix);
-  };
+  //new game and open cell
 
-  const NewGame = (e) => {
-    const opened_div = e.target;
-    if (
-      opened_div.classList.contains("field__cell") &&
-      status === "not_started"
-    ) {
-      const opened = {
-        x: opened_div.dataset.x,
-        y: opened_div.dataset.y,
-      };
-      onStartGame();
-      setMines(field_data, opened);
-      GenerateFieldMatrix(field_data, mines_array, opened);
-    }
-  };
+  /* Initial State and State Setters */
+
+  const [firstOpened, setFirstOpened] = useState({ x: "err", y: "err" });
+
+  useEffect(() => {
+    openCellWithObj(firstOpened);
+  }, [firstOpened]);
+
+  /* End of Initial State and State Setters */
+
+  /* Functions with Setters */
+
+  /* End of Functions with Setters */
+
+  /* Generation Functions */
 
   /* End of Generation Functions */
 
-  GenerateFieldDivs(field_data);
+  /* Gameplay */
+  /* End of Gameplay */
 
   return (
-    <div className={"field field_" + difficulty} onClick={(e) => NewGame(e)}>
-      {field_divs}
+    <div className={"field field_" + difficulty}>
+      {status === "won" || status === "lost" ? (
+        <div
+          className={
+            "field__poster" +
+            (status === "won" ? " field__poster_win" : " field__poster_lose")
+          }
+          onClick={restartGame}
+        >
+          <span className="field__poster-text">
+            {status === "won" ? "Победа!" : "Проебал лох"}
+          </span>
+        </div>
+      ) : null}
+      {generateFieldDivs(fieldData)}
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import React from "react";
 
-const Options = ({ onChangeDifficulty }) => {
+const Options = ({ onChangeDifficulty: changeDifficulty }) => {
   return (
     <select
       className="options"
       defaultValue="beginner"
-      onChange={(e) => onChangeDifficulty(e.currentTarget.value)}
+      onChange={(e) => changeDifficulty(e.currentTarget.value)}
     >
       <option value="beginner">Новичок</option>
       <option value="amateur">Любитель</option>
