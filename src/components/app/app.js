@@ -6,10 +6,6 @@ import Options from "../options/options";
 const App = () => {
   /* State Hooks */
 
-  useEffect(() => {
-    console.log("app restarted");
-  });
-
   const [difficulty, setDifficulty] = useState("beginner");
 
   const [status, setStatus] = useState("not_started");

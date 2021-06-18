@@ -12,7 +12,6 @@ const Field = ({
   onWin: winGame,
   onRestart: restartGame,
 }) => {
-  useEffect(() => console.log(openedCellsMatrix, fieldData, difficulty));
   const LETTERS = "АБВГДЕЖЗИКЛМНОПРСТУФ".split("");
 
   // independent functions
@@ -82,24 +81,33 @@ const Field = ({
     if (y in openedCellsMatrix) {
       if (x in openedCellsMatrix[y]) {
         if (openedCellsMatrix[y][x] === 0) {
+          let lost_flag = false;
           const temp_opened_cells_matrix = openedCellsMatrix;
           temp_opened_cells_matrix[y][x] = 1;
           setOpenedCellsMatrix([...temp_opened_cells_matrix]);
-          switch (fieldMatrix[y][x]) {
-            case -1:
-              loseGame();
-              break;
-            case 0:
-              for (let i = -1; i <= 1; i++) {
-                for (let j = -1; j <= 1; j++) {
-                  if (i !== 0 || j !== 0) {
-                    openCellWithObj({ y: y + i, x: x + j });
-                  }
+          if (fieldMatrix[y][x] === -1) {
+            loseGame();
+            lost_flag = true;
+          } else if (fieldMatrix[y][x] === 0) {
+            for (let i = -1; i <= 1; i++) {
+              for (let j = -1; j <= 1; j++) {
+                if (i !== 0 || j !== 0) {
+                  openCellWithObj({ y: y + i, x: x + j });
                 }
               }
-              break;
-            default:
-              break;
+            }
+          }
+          if (!lost_flag) {
+            let explored_cells_amount = 0;
+            for (let row of openedCellsMatrix) {
+              explored_cells_amount += row.filter((cell) => cell === 1).length;
+            }
+            if (
+              explored_cells_amount ===
+              fieldData.y * fieldData.x - fieldData.mines_count
+            ) {
+              winGame();
+            }
           }
         }
       }
@@ -130,6 +138,16 @@ const Field = ({
       if (cell_div != null && pos != null) {
         openCellWithObj(pos);
       } else alert("Клетка с введёнными координатами не найдена");
+    }
+  };
+
+  const toggleFlag = (e, y, x) => {
+    e.preventDefault();
+    if (openedCellsMatrix[y][x] !== 1 && status === "started") {
+      const temp_opened_cells_matrix = openedCellsMatrix;
+      temp_opened_cells_matrix[y][x] =
+        temp_opened_cells_matrix[y][x] === -1 ? 0 : -1;
+      setOpenedCellsMatrix([...temp_opened_cells_matrix]);
     }
   };
 
@@ -221,8 +239,10 @@ const Field = ({
           <FieldCell
             key={LETTERS[j] + i}
             key_str={LETTERS[j] + i}
-            is_pressed={openedCellsMatrix[i - 1][j]}
+            is_pressed={openedCellsMatrix[i - 1][j] === 1}
+            is_flagged={openedCellsMatrix[i - 1][j] === -1}
             onPress={openCellWithStr}
+            onRightClick={toggleFlag}
             onNewGame={newGame}
             value={fieldMatrix[i - 1][j]}
             y={i - 1}
