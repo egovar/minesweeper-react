@@ -133,6 +133,10 @@ const Field = ({
       };
     } else {
       alert("Ошибка парсинга координатной строки");
+      return {
+        y: "err",
+        x: "err",
+      };
     }
   };
 
@@ -155,16 +159,20 @@ const Field = ({
     }
   };
 
-  const toggleFlag = (e, y, x) => {
+  const toggleFlag = (e, y = "Err", x = "Err") => {
     e.preventDefault();
-    if (openedCellsMatrix[y][x] !== 1 && status === "started") {
-      const temp_opened_cells_matrix = openedCellsMatrix;
-      temp_opened_cells_matrix[y][x] =
-        temp_opened_cells_matrix[y][x] === -1 ? 0 : -1;
-      setFlagsCount(
-        flagsCount + (temp_opened_cells_matrix[y][x] === -1 ? -1 : 1)
-      );
-      setOpenedCellsMatrix([...temp_opened_cells_matrix]);
+    if (y in openedCellsMatrix) {
+      if (x in openedCellsMatrix[y]) {
+        if (openedCellsMatrix[y][x] !== 1 && status === "started") {
+          const temp_opened_cells_matrix = openedCellsMatrix;
+          temp_opened_cells_matrix[y][x] =
+            temp_opened_cells_matrix[y][x] === -1 ? 0 : -1;
+          setFlagsCount(
+            flagsCount + (temp_opened_cells_matrix[y][x] === -1 ? -1 : 1)
+          );
+          setOpenedCellsMatrix([...temp_opened_cells_matrix]);
+        }
+      }
     }
   };
 
@@ -252,10 +260,18 @@ const Field = ({
     const field_divs = [];
     field_divs.push(<div key="-А0"></div>);
     for (let i = 0; i < field_size.x; i++) {
-      field_divs.push(<div key={LETTERS[i]}>{LETTERS[i]}</div>);
+      field_divs.push(
+        <div className="field__letters" key={LETTERS[i]}>
+          {LETTERS[i]}
+        </div>
+      );
     }
     for (let i = 1; i <= field_size.y; i++) {
-      field_divs.push(<div key={i}>{i}</div>);
+      field_divs.push(
+        <div className="field__numbers" key={i}>
+          {i}
+        </div>
+      );
       for (let j = 0; j < field_size.x; j++) {
         field_divs.push(
           <FieldCell
@@ -321,7 +337,7 @@ const Field = ({
             onClick={restartGame}
           >
             <span className="field__poster-text">
-              {status === "won" ? "Победа!" : "Проебал лох"}
+              {status === "won" ? "Победа!" : "Проиграл!"}
             </span>
           </div>
         ) : null}

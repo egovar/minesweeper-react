@@ -1,0 +1,10 @@
+.options {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    margin: 1rem auto;
+}
+
+.options__restart {
+    margin-bottom: 0.3rem;
+}

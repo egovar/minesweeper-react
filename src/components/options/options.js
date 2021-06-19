@@ -1,5 +1,7 @@
 import React from "react";
 
+import "./options.css";
+
 const Options = ({
   onChangeDifficulty: changeDifficulty,
   onRestart: restartGame,

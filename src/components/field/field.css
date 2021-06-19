@@ -1,10 +1,15 @@
+.main {
+    display: flex;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+}
 .field {
     display: grid;
     gap: 5px;
     grid-auto-rows: 30px;
     position: relative;
     width: fit-content;
-    margin: 1rem auto;
+    margin: 1rem 1.5rem 1rem 0;
 }
 
 .field_amateur {
@@ -50,5 +55,22 @@
 
 .field__flags-count {
     width: fit-content;
-    margin: auto;
+    margin: 3rem 0;
+}
+
+.field__flags-count > img {
+    margin-right: 5px;
+}
+
+.field__letters {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.field__numbers {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 5px;
 }
