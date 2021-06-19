@@ -1,0 +1,14 @@
+.inputs {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    margin: auto;
+}
+
+#input_open, #label_flag {
+    margin: 0.25rem 0;
+}
+
+.inputs__button {
+    margin-top: 0.5rem;
+}

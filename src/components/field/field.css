@@ -4,6 +4,7 @@
     grid-auto-rows: 30px;
     position: relative;
     width: fit-content;
+    margin: 1rem auto;
 }
 
 .field_amateur {
@@ -45,4 +46,9 @@
     font-family: Arial, sans-serif;
     background-color: rgba(255, 255, 255, 0.7);
     color: black;
+}
+
+.field__flags-count {
+    width: fit-content;
+    margin: auto;
 }

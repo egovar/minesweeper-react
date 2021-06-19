@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 
 import "./field.css";
+import flag from "../../assets/flag.svg";
 
 import FieldCell from "../field__cell/field__cell";
+import Inputs from "../inputs/inputs";
 
 const Field = ({
   difficulty,
@@ -64,6 +66,12 @@ const Field = ({
     }
   }, [difficulty, status]);
 
+  const [flagsCount, setFlagsCount] = useState(fieldData.mines_count);
+
+  useEffect(() => {
+    setFlagsCount(fieldData.mines_count);
+  }, [fieldData]);
+
   //calculate field data dependent
 
   const [fieldMatrix, setFieldMatrix] = useState(
@@ -116,7 +124,7 @@ const Field = ({
   };
 
   const strToCoordinateObj = (y, x) => {
-    x = LETTERS.indexOf(x);
+    x = LETTERS.indexOf(x.toUpperCase());
     y = Number(y);
     if (x >= 0 && Number.isNaN(y) === false) {
       return {
@@ -139,6 +147,11 @@ const Field = ({
       if (cell_div != null && pos != null) {
         openCellWithObj(pos);
       } else alert("Клетка с введёнными координатами не найдена");
+    } else if (status === "not_started") {
+      const x_raw = coord_str.charAt(0).toUpperCase();
+      const y_raw = coord_str.substr(1);
+      const pos = strToCoordinateObj(y_raw, x_raw);
+      newGame(pos);
     }
   };
 
@@ -148,8 +161,16 @@ const Field = ({
       const temp_opened_cells_matrix = openedCellsMatrix;
       temp_opened_cells_matrix[y][x] =
         temp_opened_cells_matrix[y][x] === -1 ? 0 : -1;
+      setFlagsCount(
+        flagsCount + (temp_opened_cells_matrix[y][x] === -1 ? -1 : 1)
+      );
       setOpenedCellsMatrix([...temp_opened_cells_matrix]);
     }
+  };
+
+  const toggleFlagWithStr = (e, str) => {
+    const coord = strToCoordinateObj(str.substr(1), str.charAt(0));
+    toggleFlag(e, coord.y, coord.x);
   };
 
   // field matrixes dependent;
@@ -285,22 +306,29 @@ const Field = ({
   /* End of Gameplay */
 
   return (
-    <div className={"field field_" + difficulty}>
-      {status === "won" || status === "lost" ? (
-        <div
-          className={
-            "field__poster" +
-            (status === "won" ? " field__poster_win" : " field__poster_lose")
-          }
-          onClick={restartGame}
-        >
-          <span className="field__poster-text">
-            {status === "won" ? "Победа!" : "Проебал лох"}
-          </span>
-        </div>
-      ) : null}
-      {generateFieldDivs(fieldData)}
-    </div>
+    <main className="main">
+      <div className="field__flags-count">
+        <img src={flag} alt="Иконка флажка" />
+        {flagsCount}
+      </div>
+      <div className={"field field_" + difficulty}>
+        {status === "won" || status === "lost" ? (
+          <div
+            className={
+              "field__poster" +
+              (status === "won" ? " field__poster_win" : " field__poster_lose")
+            }
+            onClick={restartGame}
+          >
+            <span className="field__poster-text">
+              {status === "won" ? "Победа!" : "Проебал лох"}
+            </span>
+          </div>
+        ) : null}
+        {generateFieldDivs(fieldData)}
+      </div>
+      <Inputs toggleFlag={toggleFlagWithStr} openCell={openCellWithStr} />
+    </main>
   );
 };
 
