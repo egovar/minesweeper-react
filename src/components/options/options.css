@@ -8,3 +8,15 @@
 .options__restart {
     margin-bottom: 0.3rem;
 }
+
+@media (max-width: 740px) {
+    .options__difficulty-option_profi {
+        display: none;
+    }
+}
+
+@media (max-width: 550px) {
+    .options__difficulty {
+        display: none;
+    }
+}

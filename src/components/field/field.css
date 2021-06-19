@@ -2,6 +2,7 @@
     display: flex;
     justify-content: center;
     font-family: Arial, sans-serif;
+    align-items: start;
 }
 .field {
     display: grid;
@@ -73,4 +74,20 @@
     justify-content: flex-end;
     align-items: center;
     padding-right: 5px;
+}
+
+@media (max-width: 1040px) {
+    .main {
+        flex-wrap: wrap;
+    }
+}
+
+
+@media (max-width: 809px) {
+    .field__flags-count {
+        margin: 1rem 0;
+    }
+    .field {
+        margin: 0 auto;
+    }
 }

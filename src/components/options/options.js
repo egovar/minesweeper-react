@@ -18,7 +18,12 @@ const Options = ({
       >
         <option value="beginner">Новичок</option>
         <option value="amateur">Любитель</option>
-        <option value="profi">Профи</option>
+        <option
+          value="profi"
+          className="options__difficulty-option options__difficulty-option_profi"
+        >
+          Профи
+        </option>
       </select>
     </div>
   );
